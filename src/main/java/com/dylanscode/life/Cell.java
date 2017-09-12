@@ -47,7 +47,7 @@ public class Cell {
 	}
 	public void draw(Graphics2D g) {
 		if(this.isInhabited()) {
-			g.setColor(Color.RED);
+			g.setColor(new Color(234, 117, 0));
 			g.fill(this.rect);
 			g.draw(this.rect);
 		}

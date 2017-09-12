@@ -14,13 +14,21 @@ import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
 
 import com.dylanscode.input.KeyHandler;
+import com.dylanscode.input.MouseHandler;
+import com.dylanscode.input.MouseMotionHandler;
 
 public class Main extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;
+	public boolean simRunning = false;
+	public int ticksPerSecond = 60;
+	private double nsPerTick = 1000000000D / ticksPerSecond;
 	BufferStrategy bs;
 	Graphics g;
 	Board board;
 	KeyHandler keyHandler;
+	MouseHandler mouseHandler;
+	MouseMotionHandler mouseMotionHandler;
+	Cell[][] cells;
 	public boolean isRunning = false;
 
 	public static void main(String[] args) {
@@ -33,7 +41,7 @@ public class Main extends JFrame implements Runnable {
 	@Override
 	public void run() {
 		long lastTime = System.nanoTime();
-		double nsPerTick = 1000000000 / 60D;
+		nsPerTick = 1000000000D / ticksPerSecond;
 		int frames = 0;
 		int ticks = 0;
 		long lastTimer = System.currentTimeMillis();
@@ -96,16 +104,48 @@ public class Main extends JFrame implements Runnable {
 		createBufferStrategy(2);
 		bs = getBufferStrategy();
 		g = getGraphics();
-		board = new Board(this,200);
+		board = new Board(this, 100);
+		cells = board.createCells();
 		keyHandler = new KeyHandler(this);
+		mouseHandler = new MouseHandler(this);
+		mouseMotionHandler = new MouseMotionHandler(this, mouseHandler);
 	}
 
 	/**
 	 * Runs 60 times / second (or at least should) updates the game
 	 */
 	public void tick() {
-		if(keyHandler.ESC.isPressed()) {
+		if (keyHandler.ESC.isPressed()) {
 			System.exit(0);
+		}
+		if ((mouseHandler.LEFT_CLICK.isClicked() || mouseMotionHandler.handler.LEFT_CLICK.isDragged())
+				&& (!simRunning)) {
+			int eventX = mouseHandler.LEFT_CLICK.getX();
+			int eventY = mouseHandler.LEFT_CLICK.getY();
+			for (int y = 0; y < cells.length; y++) {
+				for (int x = 0; x < cells[y].length; x++) {
+					if (cells[y][x].isOnMouse(eventX, eventY))
+						cells[y][x].setInhabited(true);
+				}
+			}
+		}
+		if ((mouseHandler.RIGHT_CLICK.isClicked() || mouseMotionHandler.handler.RIGHT_CLICK.isDragged())
+				&& (!simRunning)) {
+			int eventX = mouseHandler.RIGHT_CLICK.getX();
+			int eventY = mouseHandler.RIGHT_CLICK.getY();
+			for (int y = 0; y < cells.length; y++) {
+				for (int x = 0; x < cells[y].length; x++) {
+					if (cells[y][x].isOnMouse(eventX, eventY))
+						cells[y][x].setInhabited(false);
+				}
+			}
+		}
+		if (!simRunning && keyHandler.ENTER.isPressed()) {
+			simRunning = true;
+			setTicksPerSecond(3);
+		}
+		if (simRunning) {
+			update(cells);
 		}
 	}
 
@@ -120,14 +160,74 @@ public class Main extends JFrame implements Runnable {
 					g2.setColor(Color.white);
 					g2.fillRect(0, 0, getWidth(), getHeight());
 					board.draw(g2);
-				}catch(Exception e) {
+					for (int y = 0; y < cells.length; y++) {
+						for (int x = 0; x < cells[y].length; x++) {
+							cells[y][x].draw(g2);
+						}
+					}
+				} catch (Exception e) {
 					e.printStackTrace();
-				}finally {
+				} finally {
 					if (g2 != null)
 						g2.dispose();
 				}
 				bs.show();
 			} while (bs.contentsLost());
 		}
+	}
+	/**
+	 * updates game of life. too tired to fix. goodnight
+	 * @param cells
+	 */
+	public void update(Cell[][] cells) {
+		@SuppressWarnings("unused")
+		int amountOfNeighbors = 0;
+		for (int y = 0; y < cells.length; y++) {
+			for (int x = 0; x < cells[y].length; x++) {
+				// bottom right
+				int x2 = (x + 1) <= board.getAmountOfCellsX()-1 ? x + 1 : 0;
+				int y2 = (y + 1) <= board.getAmountOfCellsY()-1 ? y + 1 : 0;
+				if (cells[y2][x2].isInhabited())
+					amountOfNeighbors++;
+				// bottom middle
+				if (cells[y2][x].isInhabited())
+					amountOfNeighbors++;
+				// middle right
+				if (cells[y][x2].isInhabited())
+					amountOfNeighbors++;
+				y2 = (y - 1) >= 0 ? y - 1 : board.getAmountOfCellsY() - 1;
+				// top right
+				if (cells[y2][x2].isInhabited())
+					amountOfNeighbors++;
+				// top middle
+				if (cells[y2][x].isInhabited())
+					amountOfNeighbors++;
+				x2 = (x - 1) >= 0 ? x - 1 : board.getAmountOfCellsX() - 1;
+				// top left
+				if (cells[y2][x2].isInhabited())
+					amountOfNeighbors++;
+				//middle left
+				if(cells[y][x2].isInhabited())
+					amountOfNeighbors++;
+				//bottom left
+				y2 = (y + 1) <= board.getAmountOfCellsY()-1 ? y + 1 : 0;
+				if(cells[y2][x2].isInhabited())
+					amountOfNeighbors++;
+				//check to see what to do to the cell
+				if(amountOfNeighbors<2 && cells[y][x].isInhabited()) {
+					cells[y][x].setInhabited(false);
+				}else if((amountOfNeighbors==2 || amountOfNeighbors == 3) && cells[y][x].isInhabited()) {
+					cells[y][x].setInhabited(true);
+				}else if(amountOfNeighbors > 3 && cells[y][x].isInhabited()){
+					cells[y][x].setInhabited(false);
+				}else if(amountOfNeighbors==3 && !(cells[y][x].isInhabited())) {
+					cells[y][x].setInhabited(true);
+				}
+			}
+		}
+	}
+
+	public void setTicksPerSecond(int amount) {
+		this.nsPerTick = 1000000000D / amount;
 	}
 }

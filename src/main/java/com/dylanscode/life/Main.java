@@ -13,14 +13,18 @@ import java.awt.image.BufferStrategy;
 
 import javax.swing.JFrame;
 
-public class GameOfLife extends JFrame implements Runnable {
+import com.dylanscode.input.KeyHandler;
+
+public class Main extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;
 	BufferStrategy bs;
 	Graphics g;
+	Board board;
+	KeyHandler keyHandler;
 	public boolean isRunning = false;
 
 	public static void main(String[] args) {
-		new GameOfLife().start();
+		new Main().start();
 	}
 
 	/**
@@ -92,13 +96,17 @@ public class GameOfLife extends JFrame implements Runnable {
 		createBufferStrategy(2);
 		bs = getBufferStrategy();
 		g = getGraphics();
+		board = new Board(this,200);
+		keyHandler = new KeyHandler(this);
 	}
 
 	/**
 	 * Runs 60 times / second (or at least should) updates the game
 	 */
 	public void tick() {
-
+		if(keyHandler.ESC.isPressed()) {
+			System.exit(0);
+		}
 	}
 
 	@Override
@@ -111,6 +119,7 @@ public class GameOfLife extends JFrame implements Runnable {
 					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					g2.setColor(Color.white);
 					g2.fillRect(0, 0, getWidth(), getHeight());
+					board.draw(g2);
 				}catch(Exception e) {
 					e.printStackTrace();
 				}finally {

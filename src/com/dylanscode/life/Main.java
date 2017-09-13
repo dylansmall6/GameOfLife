@@ -27,7 +27,7 @@ public class Main extends JFrame implements Runnable {
 	MouseHandler mouseHandler;
 	MouseMotionHandler mouseMotionHandler;
 	Cell[][] cells;
-	private boolean debug = true;
+	private boolean debug = false;
 	public boolean isRunning = false;
 
 	public static void main(String[] args) {

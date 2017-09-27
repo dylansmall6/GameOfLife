@@ -9,17 +9,23 @@ public class Board {
 	private int amountOfCellsY;
 	private int cellWidth;
 	private int cellHeight;
+	//2D Cell array initially created with all null values
 	private Cell[][] cells;
+	// Positions of cells next to current cell on board
 	public int[][] positions = { { -1, 1 }, { 0, 1 }, { 1, 1 }, { -1, 0 }, { 1, 0 }, { -1, -1 }, { 0, -1 }, { 1, -1 } };
 
 	public Board(Main game, int amountOfCellsX) {
 		this.game = game;
 		this.setAmountOfCellsX(amountOfCellsX);
+		//Using ratios we can calculate the amount of cells in the y direction
 		this.setAmountOfCellsY((game.getHeight() * amountOfCellsX) / game.getWidth());
 		this.cellWidth = game.getWidth() / amountOfCellsX;
 		this.cellHeight = cellWidth;
 	}
-
+	/**
+	 * createCells initializes cells based upon cell width of board
+	 * @return cells
+	 */
 	public Cell[][] createCells() {
 		cells = new Cell[++amountOfCellsY][++amountOfCellsX];
 		int xCoord = 0;
@@ -34,7 +40,10 @@ public class Board {
 		}
 		return cells;
 	}
-
+	/**
+	 * Draws graphics onto JFrame by setting the color to black, and drawing lines where cell borders are
+	 * @param g
+	 */
 	public void draw(Graphics2D g) {
 		g.setColor(Color.BLACK);
 		int y = 0;
@@ -49,7 +58,11 @@ public class Board {
 		}
 
 	}
-
+	/**
+	 * sets the neighbor int in the cell class to its amount of surrounding neighbors on the board. Using three nested for loops, the 
+	 * method loops through y values and x values of the array, then compares each cell to its neighbor in the array, and sets the total amount of neighbors in each cell
+	 * @param cells
+	 */
 	public void findNeighbors(Cell[][] cells) {
 		for (int y = 0; y < cells.length; y++) {
 			for (int x = 0; x < cells[y].length; x++) {
@@ -73,6 +86,10 @@ public class Board {
 			}
 		}
 	}
+	/**
+	 * loops through a 2D cell array and resets the amount of neighbors
+	 * @param cells
+	 */
 	public void resetNeighbors(Cell[][] cells) {
 		for(int y=0;y<cells.length;y++) {
 			for(int x=0;x<cells[y].length;x++) {

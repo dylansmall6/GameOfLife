@@ -7,9 +7,9 @@ import java.awt.Rectangle;
 public class Cell {
 	private int x;
 	private int y;
-	private int size;
+	private int size; //each cell is a square, so no need for width and height
 	private boolean isInhabited;
-	private boolean isInhabitedNextRound;
+	// Used for drawing cells, since each cell is essentially just a rectangle drawn on the screen
 	private Rectangle rect;
 	private int neighbors;
 	public Cell(int x,int y,int size) {
@@ -17,7 +17,6 @@ public class Cell {
 		this.setY(y);
 		this.setSize(size);
 		this.setInhabited(false);
-		this.setInhabitedNextRound(false);
 		this.setNeighbors(0);
 		rect = new Rectangle(x+1, y+1, size-2, size-2);
 	}
@@ -45,6 +44,10 @@ public class Cell {
 	public void setX(int x) {
 		this.x = x;
 	}
+	/**
+	 * Draws cell on JFrame
+	 * @param g
+	 */
 	public void draw(Graphics2D g) {
 		if(this.isInhabited()) {
 			g.setColor(new Color(234, 117, 0));
@@ -54,12 +57,6 @@ public class Cell {
 	}
 	public boolean isOnMouse(int mouseX,int mouseY) {
 		return rect.contains(mouseX, mouseY);
-	}
-	public boolean isInhabitedNextRound() {
-		return isInhabitedNextRound;
-	}
-	public void setInhabitedNextRound(boolean isInhabitedNextRound) {
-		this.isInhabitedNextRound = isInhabitedNextRound;
 	}
 	public int getNeighbors() {
 		return neighbors;
